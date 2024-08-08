@@ -1,0 +1,248 @@
+# for_John_ADMIXTUREgraphs_example_script.docx
+
+
+setwd("Z:/nclie/ADMIXTURE_REDO/")
+read.table("HGTJAM_1000G_CAfGEN_merge_Oct11_2018_final_genoQCmindQC_MalariaGENsnps_reducedindiv_allthousand.6.Q") -> qvals 
+samplepheno <- read.table("HGTJAM_1000G_CAfGEN_merge_Oct11_2018_final_genoQCmindQC_MalariaGENsnps_reducedindiv_allthousand.fam", header = FALSE, col.names = c("Family ID", "Individual ID", "Paternal ID", "Maternal ID", "Gender", "Phenotype"), stringsAsFactors = FALSE)
+
+sampleinfo <- read.table("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/integrated_call_samples_v2.20130502.ALL.ped",
+                         header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+# Merge files
+samplephenoq <- data.frame(samplepheno, qvals)
+sampleinfopheno <- merge(sampleinfo, samplephenoq,
+                         by = c("Individual.ID"),
+                         all.x = TRUE, all.y = TRUE)
+sampleinfopheno[c(is.na(sampleinfopheno$V1) == FALSE),] -> sip2
+
+sip2$Population[grep("JMM", sip2$Individual.ID)] <- "Jamaica"
+sip2$Population[grep("JMICSM", sip2$Individual.ID)] <- "Jamaica"
+sip2$Population[grep("^5.*$", sip2$Individual.ID)] <- "Malawi"
+sip2$Population[grep("BWR", sip2$Individual.ID)] <- "BWR"
+sip2$Population[grep("UGR", sip2$Individual.ID)] <- "Uganda"
+sip2$Population[grep("UGT", sip2$Individual.ID)] <- "Uganda"
+
+sip2$SuperPopulation[sip2$Population == "ACB" |
+                                  sip2$Population == "ASW" |
+                                  sip2$Population == "LWK" |
+                                  sip2$Population == "ESN" |
+                                  sip2$Population == "GWD" |
+                                  sip2$Population == "MSL" |
+                                  sip2$Population == "YRI"] <- "AFR"
+sip2$SuperPopulation[sip2$Population == "CLM" |
+                                  sip2$Population == "MXL" |
+                                  sip2$Population == "PEL" |
+                                  sip2$Population == "PUR"] <- "AMR"
+sip2$SuperPopulation[sip2$Population == "CDX" |
+                                  sip2$Population == "CHB" |
+                                  sip2$Population == "CHS" |
+                                  sip2$Population == "JPT" |
+                                  sip2$Population == "KHV"] <- "EAS"
+sip2$SuperPopulation[sip2$Population == "CEU" |
+                                  sip2$Population == "FIN" |
+                                  sip2$Population == "GBR" |
+                                  sip2$Population == "IBS" |
+                                  sip2$Population == "TSI"] <- "EUR"
+sip2$SuperPopulation[sip2$Population == "GIH" |
+                                  sip2$Population == "PJL" |
+                                  sip2$Population == "BEB" |
+                                  sip2$Population == "STU" |
+                                  sip2$Population == "ITU"] <- "SAS"
+
+sip2$SuperPopulation[sip2$Population == "Jamaica"] <- "Jamaica"
+sip2$SuperPopulation[sip2$Population == "Malawi"] <- "Malawi"
+sip2$SuperPopulation[sip2$Population == "BWR"] <- "BWR"
+sip2$SuperPopulation[sip2$Population == "SDC"] <- "SDC"
+sip2$SuperPopulation[sip2$Population == "Uganda"] <- "Uganda"
+
+sampleall <- sip2 
+
+sampleall[with(sampleall, order(SuperPopulation,-V1,-V2,-V3,-V4,-V5,-V6)),] -> oqvalpops
+oqvalpops[,c("V1","V2","V3","V4","V5","V6")] -> wow
+
+wow[grep("Jamaica", oqvalpops$SuperPopulation),] -> jam
+wow[grep("Malawi", oqvalpops$SuperPopulation),] -> mal
+wow[grep("Uganda", oqvalpops$SuperPopulation),] -> uga
+wow[grep("BWR", oqvalpops$SuperPopulation),] -> bwr
+wow[grep("AFR", oqvalpops$SuperPopulation),] -> afr
+wow[grep("AMR", oqvalpops$SuperPopulation),] -> amr
+wow[grep("EAS", oqvalpops$SuperPopulation),] -> eas
+wow[grep("EUR", oqvalpops$SuperPopulation),] -> eur
+wow[grep("SAS", oqvalpops$SuperPopulation),] -> sas
+
+colorz <- c("hotpink","yellow","firebrick2","lawngreen","sienna1","cadetblue2","gold","magenta3","mediumpurple1","chartreuse4","lightpink","blue","orange","purple3")
+
+sampleAfr <- subset(sampleall, Population == "ACB" |
+                      Population == "ASW" |
+                      Population == "ESN" |
+                      Population == "GWD" |
+                      Population == "LWK" |
+                      Population == "MSL" |
+                      Population == "YRI")
+sampleAfr[with(sampleAfr, order(Population,-V1,-V2,-V3,-V4,-V5,-V6)),] -> oafrall
+oafrall[,c("V1","V2","V3","V4","V5","V6")] -> huhafr
+
+huhafr[grep("ACB", oafrall$Population),] -> acb
+huhafr[grep("ASW", oafrall$Population),] -> asw
+huhafr[grep("ESN", oafrall$Population),] -> esn
+huhafr[grep("GWD", oafrall$Population),] -> gwd
+huhafr[grep("LWK", oafrall$Population),] -> lwk
+huhafr[grep("MSL", oafrall$Population),] -> msl
+huhafr[grep("YRI", oafrall$Population),] -> yri
+
+sampleAmr <- subset(sampleall, Population == "CLM" |
+                      Population == "MXL" |
+                      Population == "PEL" |
+                      Population == "PUR")
+sampleAmr[with(sampleAmr, order(Population,-V1,-V2,-V3,-V4,-V5,-V6)),] -> oamrall
+oamrall[,c("V1","V2","V3","V4","V5","V6")] -> huhamr
+
+huhamr[grep("CLM", oamrall$Population),] -> clm
+huhamr[grep("MXL", oamrall$Population),] -> mxl
+huhamr[grep("PEL", oamrall$Population),] -> pel
+huhamr[grep("PUR", oamrall$Population),] -> pur
+
+sampleEas <- subset(sampleall, Population == "CDX" |
+                      Population == "CHB" |
+                      Population == "CHS" |
+                      Population == "JPT" |
+                      Population == "KHV")
+sampleEas[with(sampleEas, order(Population,-V1,-V2,-V3,-V4,-V5,-V6)),] -> oeasall
+oeasall[,c("V1","V2","V3","V4","V5","V6")] -> huheas
+
+huheas[grep("CDX", oeasall$Population),] -> cdx
+huheas[grep("CHB", oeasall$Population),] -> chb
+huheas[grep("CHS", oeasall$Population),] -> chs
+huheas[grep("JPT", oeasall$Population),] -> jpt
+huheas[grep("KHV", oeasall$Population),] -> khv
+
+sampleEur <- subset(sampleall, Population == "CEU" |
+                      Population == "FIN" |
+                      Population == "GBR" |
+                      Population == "IBS" |
+                      Population == "TSI")
+sampleEur[with(sampleEur, order(Population,-V1,-V2,-V3,-V4,-V5,-V6)),] -> oeurall
+oeurall[,c("V1","V2","V3","V4","V5","V6")] -> huheur
+
+huheur[grep("CEU", oeurall$Population),] -> ceu
+huheur[grep("FIN", oeurall$Population),] -> fin
+huheur[grep("GBR", oeurall$Population),] -> gbr
+huheur[grep("IBS", oeurall$Population),] -> ibs
+huheur[grep("TSI", oeurall$Population),] -> tsi
+
+sampleSas <- subset(sampleall, Population == "GIH" |
+                      Population == "PJL" |
+                      Population == "BEB" |
+                      Population == "STU" |
+                      Population == "ITU")
+sampleSas[with(sampleSas, order(Population,-V1,-V2,-V3,-V4,-V5,-V6)),] -> osasall
+osasall[,c("V1","V2","V3","V4","V5","V6")] -> huhsas
+
+huhsas[grep("GIH", osasall$Population),] -> gih
+huhsas[grep("PJL", osasall$Population),] -> pjl
+huhsas[grep("BEB", osasall$Population),] -> beb
+huhsas[grep("STU", osasall$Population),] -> stu
+huhsas[grep("ITU", osasall$Population),] -> itu
+
+## everything 
+
+# the barplots
+layout(mat = matrix(c(1:30), 
+                        nrow = 5, 
+                        ncol = 6,
+                        byrow=TRUE))
+
+
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(jam)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="Jamaica", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(mal)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="Malawi", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(uga)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="Uganda", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(bwr)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="BWR", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(acb)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="ACB", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(asw)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="ASW", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(esn)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="ESN", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(gwd)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="GWD", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(lwk)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="LWK", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(msl)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="MSL", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(yri)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="YRI", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(clm)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="CLM", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(mxl)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="MXL", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(pel)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="PEL", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(pur)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="PUR", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(cdx)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="CDX", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(chb)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="CHB", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(chs)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="CHS", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(jpt)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="JPT", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(khv)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="KHV", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(ceu)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="CEU", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(fin)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="FIN", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(gbr)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="GBR", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(ibs)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="IBS", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(tsi)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="TSI", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(gih)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="GIH", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(pjl)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="PJL", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(beb)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="BEB", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(stu)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="STU", cex.lab=1.5, line=0.5)
+par(mar=c(1.7,0,1,0))
+barplot(t(as.matrix(itu)), col=colorz[1:6], xlab="", border=NA, xaxt='n', yaxt='n', space=0)
+title(xlab="ITU", cex.lab=1.5, line=0.5)
+
+# saved in Z:/nclie/ADMIXTURE_REDO
+
+

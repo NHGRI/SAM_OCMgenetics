@@ -1,0 +1,64 @@
+# trying_GEMMA_script_v2.docx
+# pesky covariate files 
+# on BCM server in R 
+
+nums <- c(3,4,5)
+
+for(i in nums){
+read.table(paste("HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C",i,"_Jun04_2019.txt", sep="")) -> cov 
+cbind(1, cov) -> cov2 
+write.table(cov2, paste("for_GEMMA_v2_covC1-C",i,"_Jun04_2019.txt", sep=""), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
+}
+
+read.table("sex_Nov19_2018_corrected.txt") -> sex 
+read.table("HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_pruned_ibdQC_MDS.mds", header=TRUE) -> mds 
+names(sex) <- c("FID", "IID", "SEX")
+merge(sex, mds, by=c("FID","IID")) -> ohno 
+unique(ohno) -> uniq
+# after much stress, I have found that JMICSM346 is displayed twice, once with sex = 0 and once with sex = 1. so i'm deleting the row where sex=0. no idea why this occurs; in the "sex" file JMICSM346 appears only once, with sex = 1. 
+uniq[c(1:394,396:731),] -> whoop
+# check the right row is excluded 
+whoop[394:396,]
+read.table("HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC.fam") -> fam
+whoop[order(match(whoop$IID,fam$V2)),] -> done 
+write.table(cbind(1,done[,c(3,5)]), "for_GEMMA_v2_covC1_Jun04_2019.txt", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ")
+write.table(cbind(1,done[,c(3,5,6)]), "for_GEMMA_v2_covC1-C2_Jun04_2019.txt", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ")
+
+# on BCM server 
+
+# all samples 
+/mnt/hanchardlab/bin/plink_beta/plink --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC--pheno HGTJAM_pheno_EvN_inclU_v3.txt --update-sex sex_Feb08_2019_corrected.txt --make-bed --out for_GEMMA_v1
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -gk 2 -c for_GEMMA_v2_covC1_Jun04_2019.txt -o gemma_try1_standardrelatedness_covC1_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -k output/gemma_try1_standardrelatedness_covC1_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1_Jun04_2019.txt -o gemma_try1_lmm_covC1_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -gk 2 -c for_GEMMA_v2_covC1-C2_Jun04_2019.txt -o gemma_try1_standardrelatedness_covC1-C2_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -k output/gemma_try1_standardrelatedness_covC1-C2_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C2_Jun04_2019.txt -o gemma_try1_lmm_covC1-C2_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -gk 2 -c for_GEMMA_v2_covC1-C3_Jun04_2019.txt -o gemma_try1_standardrelatedness_covC1-C3_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -k output/gemma_try1_standardrelatedness_covC1-C3_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C3_Jun04_2019.txt -o gemma_try1_lmm_covC1-C3_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -gk 2 -c for_GEMMA_v2_covC1-C4_Jun04_2019.txt -o gemma_try1_standardrelatedness_covC1-C4_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -k output/gemma_try1_standardrelatedness_covC1-C4_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C4_Jun04_2019.txt -o gemma_try1_lmm_covC1-C4_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -gk 2 -c for_GEMMA_v2_covC1-C5_Jun04_2019.txt -o gemma_try1_standardrelatedness_covC1-C5_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1 -k output/gemma_try1_standardrelatedness_covC1-C5_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C5_Jun04_2019.txt -o gemma_try1_lmm_covC1-C5_Jun04_2019
+
+# OCM SNPs only 
+/mnt/hanchardlab/bin/plink_beta/plink --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM --pheno HGTJAM_pheno_EvN_inclU_v3.txt --update-sex sex_Feb08_2019_corrected.txt --make-bed --out for_GEMMA_v1_OCM
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -gk 2 -c for_GEMMA_v2_covC1_Jun04_2019.txt -o gemma_try1_OCM_standardrelatedness_covC1_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -k output/gemma_try1_OCM_standardrelatedness_covC1_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1_Jun04_2019.txt -o gemma_try1_OCM_lmm_covC1_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -gk 2 -c for_GEMMA_v2_covC1-C2_Jun04_2019.txt -o gemma_try1_OCM_standardrelatedness_covC1-C2_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -k output/gemma_try1_OCM_standardrelatedness_covC1-C2_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C2_Jun04_2019.txt -o gemma_try1_OCM_lmm_covC1-C2_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -gk 2 -c for_GEMMA_v2_covC1-C3_Jun04_2019.txt -o gemma_try1_OCM_standardrelatedness_covC1-C3_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -k output/gemma_try1_OCM_standardrelatedness_covC1-C3_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C3_Jun04_2019.txt -o gemma_try1_OCM_lmm_covC1-C3_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -gk 2 -c for_GEMMA_v2_covC1-C4_Jun04_2019.txt -o gemma_try1_OCM_standardrelatedness_covC1-C4_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -k output/gemma_try1_OCM_standardrelatedness_covC1-C4_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C4_Jun04_2019.txt -o gemma_try1_OCM_lmm_covC1-C4_Jun04_2019
+
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -gk 2 -c for_GEMMA_v2_covC1-C5_Jun04_2019.txt -o gemma_try1_OCM_standardrelatedness_covC1-C5_Jun04_2019
+./gemma-0.98.1-linux-static -bfile for_GEMMA_v1_OCM -k output/gemma_try1_OCM_standardrelatedness_covC1-C5_Jun04_2019.sXX.txt -lmm 4 -c for_GEMMA_v2_covC1-C5_Jun04_2019.txt -o gemma_try1_OCM_lmm_covC1-C5_Jun04_2019
+

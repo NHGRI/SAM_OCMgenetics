@@ -1,0 +1,18 @@
+#estimate k and determine iterations needed for model to converge for highest K
+#bash script
+
+#!/bin/bash
+
+#samples to run
+#input file has QC'd data with population of interest and control populations in sorted PLINK fam file
+dosamples="/home/retshabi/binary_analysis/sorted.afr.bw.agvp.mafabv5.ld_pruned.repruned.v1.bed"
+seekprop=/home/retshabi/admixture_linux-1.3.0/admixture
+
+#execute loop
+#j8 represents number of cores
+#--cv without number defaults to 5 Cross Validation steps
+for K in {1..8};
+do
+  $seekprop  -s 43 --cv $dosamples -j8 $K | tee /home/retshabi/binary_analysis/sorted.afr.bwr.agvp.1000GP3.run1.log${K}.out;
+
+done
