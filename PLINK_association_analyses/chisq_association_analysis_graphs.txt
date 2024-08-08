@@ -1,0 +1,68 @@
+# tomato_plots_association_analysis_chi2_Feb04_2019.docx
+## R on computer!! 
+
+setwd("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/tomato/")
+colorz <- c("hotpink","yellow","firebrick2","lawngreen","sienna1","cadetblue2","gold","mediumpurple1","chartreuse4","lightpink","blue","orange","purple3")
+
+library(qqman)
+
+files <- c("geno_ocmSNPs_50Kflank_allsamps",
+"geno_ocmSNPs_50Kflank_jam",
+"geno_ocmSNPs_50Kflank_mal",
+"merged_ocmSNPs_50Kflank_allsamps",
+"merged_ocmSNPs_50Kflank_jam",
+"merged_ocmSNPs_50Kflank_mal")
+
+for(i in files){
+data <- read.table(paste("tomato_",i,"_chi2.assoc",sep=""), header=TRUE)
+na.omit(data) -> dataomit
+png(paste("tomato_",i,"_chi2.manhattan_v2.png", sep=""), height=1600, width=1600, res=200)
+manhattan(dataomit, col=colorz, logp=TRUE, annotatePval=TRUE, genomewideline=-log10(0.05/nrow(data_add)), suggestiveline = -log10(0.05/105), main="Manhattan plot of Chi-squared association analysis", ylim=c(0,10))
+mtext(paste(i))
+dev.off()
+}
+
+# genome-wide line is 0.05/number of SNPs 
+# suggestive line is 0.05/number of genes 
+
+for(i in files){
+data <- read.table(paste("tomato_",i,"_chi2.assoc",sep=""), header=TRUE)
+na.omit(data) -> dataomit
+data[c(data$P < 5e-04),] -> thing 
+assign(paste(i), thing) 
+}
+
+geno_ocmSNPs_50Kflank_allsamps
+geno_ocmSNPs_50Kflank_jam
+geno_ocmSNPs_50Kflank_mal
+merged_ocmSNPs_50Kflank_allsamps
+merged_ocmSNPs_50Kflank_jam
+merged_ocmSNPs_50Kflank_mal
+
+
+
+setwd("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/tomato")
+
+files <- c("geno_allSNPs_noflank_allsamps",
+"geno_allSNPs_noflank_jam",
+"geno_allSNPs_noflank_mal",
+"merged_allSNPs_noflank_allsamps",
+"merged_allSNPs_noflank_jam",
+"merged_allSNPs_noflank_mal")
+
+for(i in files){
+data <- read.table(paste("tomato_",i,"_chi2.assoc",sep=""), header=TRUE)
+na.omit(data) -> dataomit
+data[c(data$P < 1e-6),] -> thing 
+assign(paste(i), thing) 
+}
+
+geno_allSNPs_noflank_allsamps
+geno_allSNPs_noflank_jam
+geno_allSNPs_noflank_mal
+merged_allSNPs_noflank_allsamps
+merged_allSNPs_noflank_jam
+merged_allSNPs_noflank_mal
+
+
+

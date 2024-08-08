@@ -1,0 +1,168 @@
+# MDSplot_HGTJAM_1000G_CAfGEN_Afr_v5_script.docx
+# back to R on my computer 
+# some parts may be redundant but it will work!
+
+setwd("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/trying_admixture")
+read.table("HGTJAM_1000G_CAfGEN_merge_Oct11_2018_final_genoQCmindQC_pruned_noATGCSNPs.11.Q") -> qvals 
+
+# Import files
+sampleinfo <- read.table("../integrated_call_samples_v2.20130502.ALL.ped",
+                         header = TRUE, sep = "\t", stringsAsFactors = FALSE)
+samplepheno <- read.table("HGTJAM_1000G_CAfGEN_merge_Oct11_2018_final_genoQCmindQC_pruned_noATGCSNPs.fam",
+                          header = FALSE,
+                          col.names = c("Family ID", "Individual ID", "Paternal ID",
+                                        "Maternal ID", "Gender", "Phenotype"),
+                          stringsAsFactors = FALSE)
+samplemds <- read.table("HGTJAM_1000G_CAfGEN_merge_Oct11_2018_final_genoQCmindQC_pruned_noATGCSNPs_PCA.mds",
+                        header = TRUE, stringsAsFactors = FALSE)
+
+# Merge files
+samplephenoq <- data.frame(samplepheno, qvals)
+sampleinfopheno <- merge(sampleinfo, samplephenoq,
+                         by = c("Individual.ID"),
+                         all.x = TRUE, all.y = TRUE)
+sampleinfopheno[c(is.na(sampleinfopheno$V1) == FALSE),] -> sip2
+
+sip2$Population[grep("JMM", sip2$Individual.ID)] <- "Jamaica"
+sip2$Population[grep("JMICSM", sip2$Individual.ID)] <- "Jamaica"
+sip2$Population[grep("^5.*$", sip2$Individual.ID)] <- "Malawi"
+sip2$Population[grep("BWR", sip2$Individual.ID)] <- "BWR"
+sip2$Population[grep("SDC", sip2$Individual.ID)] <- "SDC"
+sip2$Population[grep("UGR", sip2$Individual.ID)] <- "Uganda"
+sip2$Population[grep("UGT", sip2$Individual.ID)] <- "Uganda"
+
+sip2$SuperPopulation[sip2$Population == "ACB" |
+                                  sip2$Population == "ASW" |
+                                  sip2$Population == "LWK" |
+                                  sip2$Population == "ESN" |
+                                  sip2$Population == "GWD" |
+                                  sip2$Population == "MSL" |
+                                  sip2$Population == "YRI"] <- "AFR"
+sip2$SuperPopulation[sip2$Population == "CLM" |
+                                  sip2$Population == "MXL" |
+                                  sip2$Population == "PEL" |
+                                  sip2$Population == "PUR"] <- "AMR"
+sip2$SuperPopulation[sip2$Population == "CDX" |
+                                  sip2$Population == "CHB" |
+                                  sip2$Population == "CHS" |
+                                  sip2$Population == "JPT" |
+                                  sip2$Population == "KHV"] <- "EAS"
+sip2$SuperPopulation[sip2$Population == "CEU" |
+                                  sip2$Population == "FIN" |
+                                  sip2$Population == "GBR" |
+                                  sip2$Population == "IBS" |
+                                  sip2$Population == "TSI"] <- "EUR"
+sip2$SuperPopulation[sip2$Population == "GIH" |
+                                  sip2$Population == "PJL" |
+                                  sip2$Population == "BEB" |
+                                  sip2$Population == "STU" |
+                                  sip2$Population == "ITU"] <- "SAS"
+
+sip2$SuperPopulation[sip2$Population == "Jamaica"] <- "Jamaica"
+sip2$SuperPopulation[sip2$Population == "Malawi"] <- "Malawi"
+sip2$SuperPopulation[sip2$Population == "BWR"] <- "BWR"
+sip2$SuperPopulation[sip2$Population == "SDC"] <- "SDC"
+sip2$SuperPopulation[sip2$Population == "Uganda"] <- "Uganda"
+
+sampleall <- merge(sip2, samplemds,
+                   by.x = c("Individual.ID"),
+                   by.y = c("IID"))
+
+sampleall[with(sampleall, order(SuperPopulation,-V1,-V2,-V3,-V4,-V5,-V6,-V7,-V8,-V9,-V10,-V11)),] -> oqvalpops
+oqvalpops[,c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11")] -> wow
+
+wow[grep("Jamaica", oqvalpops$SuperPopulation),] -> jam
+wow[grep("Malawi", oqvalpops$SuperPopulation),] -> mal
+wow[grep("Uganda", oqvalpops$SuperPopulation),] -> uga
+wow[grep("BWR", oqvalpops$SuperPopulation),] -> bwr
+wow[grep("AFR", oqvalpops$SuperPopulation),] -> afr
+wow[grep("AMR", oqvalpops$SuperPopulation),] -> amr
+wow[grep("EAS", oqvalpops$SuperPopulation),] -> eas
+wow[grep("EUR", oqvalpops$SuperPopulation),] -> eur
+wow[grep("SAS", oqvalpops$SuperPopulation),] -> sas
+
+widthz <- as.numeric(c(nrow(jam),nrow(mal),nrow(uga),nrow(bwr),nrow(afr),nrow(amr),nrow(eas),nrow(eur),nrow(sas)))/200
+
+colorz <- c("hotpink","yellow","firebrick2","lawngreen","sienna1","cadetblue2","gold","mediumpurple1","chartreuse4","lightpink","blue","orange","purple3")
+pie(rep(1,6), col=colorz[c(2,4,6,8,1,12)])
+
+# graph of just the africa samples 
+sampleAfr <- subset(sampleall, Population == "ACB" |
+                      Population == "ASW" |
+                      Population == "ESN" |
+                      Population == "GWD" |
+                      Population == "LWK" |
+                      Population == "MSL" |
+                      Population == "YRI")
+
+sampleall[c(sampleall$SuperPopulation == "AFR"),] -> afrall 
+afrall[with(afrall, order(Population,-V1,-V2,-V3,-V4,-V5,-V6,-V7,-V8,-V9,-V10,-V11)),] -> oafrall
+oafrall[,c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11")] -> huh
+
+huh[grep("ACB", oafrall$Population),] -> acb
+huh[grep("ASW", oafrall$Population),] -> asw
+huh[grep("ESN", oafrall$Population),] -> esn
+huh[grep("GWD", oafrall$Population),] -> gwd
+huh[grep("LWK", oafrall$Population),] -> lwk
+huh[grep("MSL", oafrall$Population),] -> msl
+huh[grep("YRI", oafrall$Population),] -> yri
+
+afrwidthz <- as.numeric(c(nrow(jam),nrow(mal),nrow(uga),nrow(bwr),nrow(acb),nrow(asw),nrow(esn),nrow(gwd),nrow(lwk),nrow(msl),nrow(yri)))/100
+
+
+
+
+## PLOT MDS 
+
+# Load packages
+library(ggplot2)
+library(extrafont)
+
+# Register fonts for Windows bitmap output
+loadfonts(device="win")
+
+# Needed only on Windows - run once per R session
+# Adjust the path to match your installation of Ghostscript
+Sys.setenv(R_GSCMD = "C:/Program Files/gs/gs9.18/bin/gswin64c.exe")
+
+# Plots
+
+sampleAfr2 <- subset(sampleall, Population == "Jamaica" | 
+                      Population == "Malawi" |
+                      Population == "Uganda" |
+                      Population == "BWR" |
+                      Population == "SDC" |
+                      Population == "ACB" |
+                      Population == "ASW" |
+                      Population == "ESN" |
+                      Population == "GWD" |
+                      Population == "LWK" |
+                      Population == "MSL" |
+                      Population == "YRI")
+
+
+
+
+png("MDSplot_HGTJAM_1000G_CAfGEN_merge_Oct11_2018_Afr_C1C2_v5.png", width = 6, height = 6, units = "in",
+    res = 1200, family = "Arial")
+ggplot(sampleAfr2, aes(x = C1, y = C2)) +
+  geom_point(aes(colour = Population), size = 0.5) +
+  scale_colour_manual(values = c("YRI" = "coral2", "Malawi" = "red",
+                                 "MSL" = "dimgrey", "LWK" = "orange",
+                                 "ESN" = "cornflowerblue", "GWD" = "mediumpurple1",
+                                 "Jamaica" = "blue", "Uganda" = "palegreen", "BWR" = "lightgoldenrod1", 
+                                 "SDC" = "wheat2", "ACB" = "darksalmon", "ASW" = "aquamarine"),
+                      breaks = c("Jamaica", "Malawi", "Uganda", "BWR", "SDC", "ACB", "ASW", 
+                                 "ESN", "GWD", "LWK", "MSL", "YRI"),
+                      labels = c("Jamaica", "Malawi", "Uganda", "Botswana", "SDC Tb", 
+                                 "African Caribbeans \n in Barbados", 
+                                 "Americans of African \n Ancestry in SW USA", "Esan in Nigeria", 
+                                 "Gambian in Western \n Divisions, Gambia", "Luhya in Webuye, \n Kenya",
+                                 "Mende in Sierra \n Leone", "Yoruba in Ibadan, \n Nigeria")) +
+  theme_classic() +
+  theme(text = element_text(size = 12), legend.title = element_blank(),
+        legend.justification = c(0, 1), legend.position = "bottom") +
+  labs(x = "Dimension 1", y = "Dimension 2") +
+  guides(colour = guide_legend(override.aes = list(size = 8)))
+dev.off()
+

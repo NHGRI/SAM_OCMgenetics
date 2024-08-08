@@ -1,0 +1,117 @@
+# mendrand_burgess_script_v2_rsquared.docx
+## mendelian randomization for loop 
+## R on computer 
+
+# load the DC methylation data 
+library(data.table)
+system.time(fread("Z:/5. DATA/MALNUTRITION/METHYLATION/DATA_for_ANALYSIS/Clean Data Phases 1-5/SEM_Phases1-5_Lumi_betaNormColorBalanceQuantile_DC.txt") -> allmethy)
+read.table("Z:/5. DATA/MALNUTRITION/METHYLATION/DATA_for_ANALYSIS/Clean Data Phases 1-5/SEM_Phases1-5_Lumi_betaNormColorBalanceQuantile_DC.txt", nrows=10, header=TRUE) -> allmethyten
+c("locus", names(allmethyten)) -> names(allmethy) 
+
+t(allmethy[,-1]) -> tallmethy 
+data.frame(tallmethy) -> tallmethydf 
+names(tallmethydf) <- allmethy$locus
+
+# load the genotype data of OCM SNPs only 
+read.table("Z:/nclie/K-MKvM_redo_2018/t3auto_ocm_K-MKvM_recodeA.txt", header=TRUE) -> allgeno
+allgeno$IID -> hm 
+!grepl("SEM", hm) 
+# 157 is the last non_SEM sample 
+hm[1:157] -> unhum 
+as.character(unhum) -> funhum 
+grep("SEM", hm, value=T) -> hum 
+library(stringr) 
+str_split_fixed(hum, "_", 2) -> hum2 
+hum2[,2] -> hum3 
+str_split_fixed(hum3, "-", 2) -> hum4 
+hum4[,2] -> newnames 
+c(funhum, newnames) -> bestnames 
+allgeno$IID <- bestnames 
+
+# find which samples are DC, have both genotyping and methylation data 
+intersect(row.names(tallmethydf), allgeno$IID) -> touse 
+# extract those samples' methylation and genotyping data 
+tallmethydf[c(touse),] -> usemethy 
+usemethy[order(row.names(usemethy)),] -> ousemethy 
+allgeno[grep(paste(touse,collapse="|"), allgeno$IID),] -> usegeno 
+row.names(usegeno) <- usegeno$IID
+usegeno[,-c(1:6)] -> usegeno2 
+library(stringr) 
+str_split_fixed(names(usegeno2), "_", 2) -> usegeno_nametable
+usegeno_nametable[,1] -> names(usegeno2)
+usegeno2[order(row.names(usegeno2)),] -> ousegeno2  
+
+read.table("Z:/nclie/phenoK-MKvM_2018.txt") -> preT 
+preT$V2 -> hm
+!grepl("SEM", hm) 
+# 157 is the last non-SEM sample 
+hm[1:157] -> unhum 
+as.character(unhum) -> funhum 
+grep("SEM", hm, value=T) -> hum 
+library(stringr) 
+str_split_fixed(hum, "_", 2) -> hum2 
+hum2[,2] -> hum3 
+str_split_fixed(hum3, "-", 2) -> hum4 
+hum4[,2] -> newnames 
+c(funhum, newnames) -> bestnames 
+cbind(IID.clean=bestnames, preT) -> goodpreT
+goodpreT[c(order(goodpreT$IID.clean)),] -> gpTorder 
+which(gpTorder$IID.clean %in% row.names(ousegeno2)) -> Tindex 
+gpTorder[c(Tindex),] -> betterT
+matrix(betterT$V3) -> Tt
+
+as.vector(Tt) -> y 
+y[y==1] <- 0 
+y[y==2] <- 1 
+
+# trans meQTLs
+# remember that phenotype is not involved in meQTLs 
+# I already extracted the significant meQTLs on the server, then moved the file to my computer 
+read.table("Z:/nclie/K-MKvM_redo_2018/MatrixEQTL_agecovar_v2_TRANS_sigFDR.txt", header=T) -> sigbetatrans 
+unique(sigbetatrans$gene) -> uniqcgT 
+
+
+i <- "cg12062545"
+ sigbetatrans[grep(i, sigbetatrans$gene),1] -> justsnpsT
+ assign(paste(i, "justsnpsT", sep=""), justsnpsT)
+
+rslistT <- mget(ls(pattern=".+justsnpsT$"))
+
+for(i in seq_along(rslistT)){
+ ousegeno2[paste(rslistT[[i]])] -> genoTL
+ assign(paste(names(rslistT[i]), "L", sep=""), genoTL) 
+}
+
+rslistTL <- mget(ls(pattern=".+justsnpsTL$"))
+
+for(i in seq_along(rslistTL)){
+ sapply(rslistTL[[i]], as.numeric) -> nTL
+ data.matrix(nTL) -> mTL
+ assign(paste(names(rslistTL[i]), "m", sep=""), mTL)
+}
+
+i <- 24486
+ ousemethy[paste(uniqcgT[i])] -> methTG
+ assign(paste(uniqcgT[i],"methT", sep=""), methTG)
+
+methlistTG <- mget(ls(pattern=".+methT$"))
+
+for(i in seq_along(methlistTG)){
+ data.matrix(methlistTG[[i]]) -> mTG 
+ assign(paste(names(methlistTG[i]), "G", sep=""), mTG)
+}
+
+ as.matrix(cg12062545justsnpsTLm) -> g 
+ as.vector(cg12062545methTG) -> x 
+ length(x) -> N 
+ g0 = as.matrix(g[y==0,])
+ tsps.glm = glm(y~predict(lm(x[y==0]~g0), newdata=list(g0=g)), family=binomial)
+ fwdMR_listC[[i]] = summary(tsps.glm)
+
+# evaluating goodess of fit 
+library(pscl) 
+pR2(tsps.glm) 	# the object must be the direct result of the regression, not the summary! 
+
+ow.names=TRUE, col.names=TRUE, sep="\t")
+
+

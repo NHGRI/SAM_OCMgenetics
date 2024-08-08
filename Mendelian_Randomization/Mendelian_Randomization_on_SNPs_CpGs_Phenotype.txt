@@ -1,0 +1,472 @@
+# mendrand_burgess_script_v2.docx
+## mendelian randomization for loop 
+## R on computer 
+
+# load the DC methylation data 
+library(data.table)
+system.time(fread("Z:/5. DATA/MALNUTRITION/METHYLATION/DATA_for_ANALYSIS/Clean Data Phases 1-5/SEM_Phases1-5_Lumi_betaNormColorBalanceQuantile_DC.txt") -> allmethy)
+read.table("Z:/5. DATA/MALNUTRITION/METHYLATION/DATA_for_ANALYSIS/Clean Data Phases 1-5/SEM_Phases1-5_Lumi_betaNormColorBalanceQuantile_DC.txt", nrows=10, header=TRUE) -> allmethyten
+c("locus", names(allmethyten)) -> names(allmethy) 
+
+t(allmethy[,-1]) -> tallmethy 
+data.frame(tallmethy) -> tallmethydf 
+names(tallmethydf) <- allmethy$locus
+
+# load the genotype data of OCM SNPs only 
+read.table("Z:/nclie/K-MKvM_redo_2018/t3auto_ocm_K-MKvM_recodeA.txt", header=TRUE) -> allgeno
+allgeno$IID -> hm 
+!grepl("SEM", hm) 
+# 157 is the last non_SEM sample 
+hm[1:157] -> unhum 
+as.character(unhum) -> funhum 
+grep("SEM", hm, value=T) -> hum 
+library(stringr) 
+str_split_fixed(hum, "_", 2) -> hum2 
+hum2[,2] -> hum3 
+str_split_fixed(hum3, "-", 2) -> hum4 
+hum4[,2] -> newnames 
+c(funhum, newnames) -> bestnames 
+allgeno$IID <- bestnames 
+
+# find which samples are DC, have both genotyping and methylation data 
+intersect(row.names(tallmethydf), allgeno$IID) -> touse 
+# extract those samples' methylation and genotyping data 
+tallmethydf[c(touse),] -> usemethy 
+usemethy[order(row.names(usemethy)),] -> ousemethy 
+allgeno[grep(paste(touse,collapse="|"), allgeno$IID),] -> usegeno 
+row.names(usegeno) <- usegeno$IID
+usegeno[,-c(1:6)] -> usegeno2 
+library(stringr) 
+str_split_fixed(names(usegeno2), "_", 2) -> usegeno_nametable
+usegeno_nametable[,1] -> names(usegeno2)
+usegeno2[order(row.names(usegeno2)),] -> ousegeno2  
+
+read.table("Z:/nclie/phenoK-MKvM_2018.txt") -> preT 
+preT$V2 -> hm
+!grepl("SEM", hm) 
+# 157 is the last non-SEM sample 
+hm[1:157] -> unhum 
+as.character(unhum) -> funhum 
+grep("SEM", hm, value=T) -> hum 
+library(stringr) 
+str_split_fixed(hum, "_", 2) -> hum2 
+hum2[,2] -> hum3 
+str_split_fixed(hum3, "-", 2) -> hum4 
+hum4[,2] -> newnames 
+c(funhum, newnames) -> bestnames 
+cbind(IID.clean=bestnames, preT) -> goodpreT
+goodpreT[c(order(goodpreT$IID.clean)),] -> gpTorder 
+which(gpTorder$IID.clean %in% row.names(ousegeno2)) -> Tindex 
+gpTorder[c(Tindex),] -> betterT
+matrix(betterT$V3) -> Tt
+
+as.vector(Tt) -> y 
+y[y==1] <- 0 
+y[y==2] <- 1 
+
+# mendrand with individual data - cis 
+# remember that phenotype is not involved in meQTLs 
+# I already extracted the significant meQTLs on the server, then moved the file to my computer 
+read.table("Z:/nclie/K-MKvM_redo_2018/MatrixEQTL_agecovar_v2_CIS_sigFDR.txt", header=T) -> sigbetacis 
+unique(sigbetacis$gene) -> uniqcgC 
+
+for(i in sigbetacis$gene){
+ sigbetacis[grep(i, sigbetacis$gene),1] -> justsnpsC
+ assign(paste(i, "justsnpsC", sep=""), justsnpsC)
+} 
+
+rslistC <- mget(ls(pattern=".+justsnpsC$"))
+
+for(i in seq_along(rslistC)){
+ ousegeno2[paste(rslistC[[i]])] -> genoCL
+ assign(paste(names(rslistC[i]), "L", sep=""), genoCL) 
+}
+
+rslistCL <- mget(ls(pattern=".+justsnpsCL$"))
+
+for(i in seq_along(rslistCL)){
+ sapply(rslistCL[[i]], as.numeric) -> nCL
+ data.matrix(nCL) -> mCL
+ assign(paste(names(rslistCL[i]), "m", sep=""), mCL)
+}
+
+for(i in seq_along(uniqcgC)){
+ ousemethy[paste(uniqcgC[i])] -> methCG
+ assign(paste(uniqcgC[i],"methC", sep=""), methCG)
+}
+
+methlistCG <- mget(ls(pattern=".+methC$"))
+
+for(i in seq_along(methlistCG)){
+ data.matrix(methlistCG[[i]]) -> mCG 
+ assign(paste(names(methlistCG[i]), "G", sep=""), mCG)
+}
+
+
+
+
+
+# save everything 
+# write.table(indivMRC, "Z:/nclie/K-MKvM_redo_2018/indivMR_v2cis.txt", quote=FALSE, row.names=FALSE, col.names=TRUE, sep="\t")
+# saveRDS(fwdMR_listC, file="Z:/nclie/K-MKvM_redo_2018/fwdMR_list_v2cis.rds")
+# saveRDS(revMR_listC, file="Z:/nclie/K-MKvM_redo_2018/revMR_list_v2cis.rds")
+
+# make a data frame with genotypes and phenotypes 
+data.frame(betterT$V3) -> phenoo 
+row.names(phenoo) <- betterT$IID.clean 
+merge(phenoo, ousegeno2, by="row.names") -> pretab 
+pretab$betterT.V3[pretab$betterT.V3==0] <- NA 
+
+# gimme the hits 
+read.table("Z:/nclie/K-MKvM_redo_2018/indivMR_v2cis.txt", header=TRUE) -> indivMRC
+indivMRC[order(indivMRC$fwdMR_pval),] -> fwdgoodC
+fwdgoodC[c(fwdgoodC$fwdMR_pval < 0.05), ] -> sigfwdC 
+sigfwdC[c(sigfwdC$revMR_pval >= 0.05), ] -> fwdbestC 
+indivMRC[order(indivMRC$revMR_pval),] -> revgoodC
+revgoodC[c(revgoodC$revMR_pval < 0.05), ] -> sigrevC 
+sigrevC[c(sigrevC$fwdMR_pval >= 0.05), ] -> revbestC 
+# ah, there are some where both directions are good…okay 
+
+# do we have an adequate number of samples for each condition? 
+# fwd first 
+# contingency tables 
+for(i in fwdbestC$CpG){
+ for(j in get(paste(i,"justsnpsC",sep=""))){ 
+ grep(j, names(pretab)) -> val
+ table(pretab$betterT.V3, pretab[,val]) -> tabl
+assign(paste("Cfwdtable_",i,"_",j,sep=""), tabl) 
+}
+}
+for(i in fwdbestC$CpG){ 
+ list() -> fwdlistC
+ for(j in 1:length(get(paste(i,"justsnpsC", sep="")))){
+  mget(paste("Cfwdtable_", i, "_", get(paste(i,"justsnpsC", sep="")), sep=""))[j] -> fwdlistC[j]
+  names(fwdlistC[j]) <- get(paste(i,"justsnpsC", sep=""))[j]
+ }
+ assign(paste("Cfwdct_", i, sep=""), fwdlistC)
+}
+
+ls(pattern="^Cfwdct_cg.*$") -> Cfwdct_all
+
+for(h in Cfwdct_all){
+ NULL -> Cfwdhits
+ for(i in 1:length(get(h))) { 
+  if (any(dim(get(h)[[i]]) != c(2,3))) (Cfwdhits[i] <- "BAD")
+  else ( 
+   if (any(sapply(get(h)[[i]],function(x) x==0))) (Cfwdhits[i] <- "BAD") 
+   else (Cfwdhits[i] <- Cfwdct_all[i]) 
+  )
+ }
+ assign(paste(h, "_hits", sep=""), Cfwdhits) 
+}
+# in the future, I can change x==0 to x < 3 or something, to make the parameter more stringent 
+
+ls(pattern="^Cfwdct_cg.*_hits$") -> Cfwdpot
+
+NULL -> Cfwdrealhits
+for(i in 1:length(Cfwdpot)){
+ if (any(get(Cfwdpot[[i]]) == "BAD")) (Cfwdrealhits[i] <- "BAD")
+ else (Cfwdrealhits[i] <- Cfwdpot[i])
+}
+
+Cfwdrealhits[!grepl("BAD", Cfwdrealhits)] -> HITSFWDC 
+# the only mildly interesting one is cg13514778_rs11907022. the other ones have missing alleles. 
+# now do the reverse 
+# contingency tables 
+for(i in revbestC$CpG){
+ for(j in get(paste(i,"justsnpsC",sep=""))){ 
+ grep(j, names(pretab)) -> val
+ table(pretab$betterT.V3, pretab[,val]) -> tabl
+assign(paste("Crevtable_",i,"_",j,sep=""), tabl) 
+}
+}
+for(i in revbestC$CpG){ 
+ list() -> revlistC
+ for(j in 1:length(get(paste(i,"justsnpsC", sep="")))){
+  mget(paste("Crevtable_", i, "_", get(paste(i,"justsnpsC", sep="")), sep=""))[j] -> revlistC[j]
+  names(revlistC[j]) <- get(paste(i,"justsnpsC", sep=""))[j]
+ }
+ assign(paste("Crevct_", i, sep=""), revlistC)
+}
+
+ls(pattern="^Crevct_cg.*$") -> Crevct_all
+
+for(h in Crevct_all){
+ NULL -> Crevhits
+ for(i in 1:length(get(h))) { 
+  if (any(dim(get(h)[[i]]) != c(2,3))) (Crevhits[i] <- "BAD")
+  else ( 
+   if (any(sapply(get(h)[[i]],function(x) x==0))) (Crevhits[i] <- "BAD") 
+   else (Crevhits[i] <- Crevct_all[i]) 
+  )
+ }
+ assign(paste(h, "_hits", sep=""), Crevhits) 
+}
+# in the future, I can change x==0 to x < 3 or something, to make the parameter more stringent 
+
+ls(pattern="^Crevct_cg.*_hits$") -> Crevpot
+
+NULL -> Crevrealhits
+for(i in 1:length(Crevpot)){
+ if (any(get(Crevpot[[i]]) == "BAD")) (Crevrealhits[i] <- "BAD")
+ else (Crevrealhits[i] <- Crevpot[i])
+}
+
+Crevrealhits[!grepl("BAD", Crevrealhits)] -> HITSREVC 
+# beautiful 
+
+# trans meQTLs
+# remember that phenotype is not involved in meQTLs 
+# I already extracted the significant meQTLs on the server, then moved the file to my computer 
+read.table("Z:/nclie/K-MKvM_redo_2018/MatrixEQTL_agecovar_v2_TRANS_sigFDR.txt", header=T) -> sigbetatrans 
+unique(sigbetatrans$gene) -> uniqcgT 
+
+for(i in sigbetatrans$gene){
+ sigbetatrans[grep(i, sigbetatrans$gene),1] -> justsnpsT
+ assign(paste(i, "justsnpsT", sep=""), justsnpsT)
+} 
+
+rslistT <- mget(ls(pattern=".+justsnpsT$"))
+
+for(i in seq_along(rslistT)){
+ ousegeno2[paste(rslistT[[i]])] -> genoTL
+ assign(paste(names(rslistT[i]), "L", sep=""), genoTL) 
+}
+
+rslistTL <- mget(ls(pattern=".+justsnpsTL$"))
+
+for(i in seq_along(rslistTL)){
+ sapply(rslistTL[[i]], as.numeric) -> nTL
+ data.matrix(nTL) -> mTL
+ assign(paste(names(rslistTL[i]), "m", sep=""), mTL)
+}
+
+for(i in seq_along(uniqcgT)){
+ ousemethy[paste(uniqcgT[i])] -> methTG
+ assign(paste(uniqcgT[i],"methT", sep=""), methTG)
+}
+
+methlistTG <- mget(ls(pattern=".+methT$"))
+
+for(i in seq_along(methlistTG)){
+ data.matrix(methlistTG[[i]]) -> mTG 
+ assign(paste(names(methlistTG[i]), "G", sep=""), mTG)
+}
+
+
+
+
+# save everything 
+# write.table(indivMRT, "Z:/nclie/K-MKvM_redo_2018/indivMR_v2trans.txt", quote=FALSE, row.names=FALSE, col.names=TRUE, sep="\t")
+# saveRDS(fwdMR_listT, file="Z:/nclie/K-MKvM_redo_2018/fwdMR_list_v2trans.rds")
+# saveRDS(revMR_listT, file="Z:/nclie/K-MKvM_redo_2018/revMR_list_v2trans.rds")
+
+# gimme the hits 
+read.table("Z:/nclie/K-MKvM_redo_2018/indivMR_v2trans.txt", header=TRUE) -> indivMRT
+indivMRT[order(indivMRT$fwdMR_pval),] -> fwdgoodT
+fwdgoodT[c(fwdgoodT$fwdMR_pval < 0.05), ] -> sigfwdT 
+sigfwdT[c(sigfwdT$revMR_pval >= 0.05), ] -> fwdbestT 
+indivMRT[order(indivMRT$revMR_pval),] -> revgoodT
+revgoodT[c(revgoodT$revMR_pval < 0.05), ] -> sigrevT 
+sigrevT[c(sigrevT$fwdMR_pval >= 0.05), ] -> revbestT 
+# ah, there are some where both directions are good…okay 
+
+# do we have an adequate number of samples for each condition? 
+# fwd first 
+# contingency tables 
+for(i in fwdbestT$CpG){
+ for(j in get(paste(i,"justsnpsT",sep=""))){ 
+ grep(j, names(pretab)) -> val
+ table(pretab$betterT.V3, pretab[,val]) -> tabl
+assign(paste("Tfwdtable_",i,"_",j,sep=""), tabl) 
+}
+}
+for(i in fwdbestT$CpG){ 
+ list() -> fwdlistT
+ for(j in 1:length(get(paste(i,"justsnpsT", sep="")))){
+  mget(paste("Tfwdtable_", i, "_", get(paste(i,"justsnpsT", sep="")), sep=""))[j] -> fwdlistT[j]
+  names(fwdlistT[j]) <- get(paste(i,"justsnpsT", sep=""))[j]
+ }
+ assign(paste("Tfwdct_", i, sep=""), fwdlistT)
+}
+
+ls(pattern="^Tfwdct_cg.*$") -> Tfwdct_all
+
+for(h in Tfwdct_all){
+ NULL -> Tfwdhits
+ for(i in 1:length(get(h))) { 
+  if (any(dim(get(h)[[i]]) != c(2,3))) (Tfwdhits[i] <- "BAD")
+  else ( 
+   if (any(sapply(get(h)[[i]],function(x) x==0))) (Tfwdhits[i] <- "BAD") 
+   else (Tfwdhits[i] <- Tfwdct_all[i]) 
+  )
+ }
+ assign(paste(h, "_hits", sep=""), Tfwdhits) 
+}
+# in the future, I can change x==0 to x < 3 or something, to make the parameter more stringent 
+
+ls(pattern="^Tfwdct_cg.*_hits$") -> Tfwdpot
+
+NULL -> Tfwdrealhits
+for(i in 1:length(Tfwdpot)){
+ if (any(get(Tfwdpot[[i]]) == "BAD")) (Tfwdrealhits[i] <- "BAD")
+ else (Tfwdrealhits[i] <- Tfwdpot[i])
+}
+
+Tfwdrealhits[!grepl("BAD", Tfwdrealhits)] -> HITSFWDT 
+# 
+ 
+# now do the reverse 
+# contingency tables 
+for(i in revbestT$CpG){
+ for(j in get(paste(i,"justsnpsT",sep=""))){ 
+ grep(j, names(pretab)) -> val
+ table(pretab$betterT.V3, pretab[,val]) -> tabl
+assign(paste("Trevtable_",i,"_",j,sep=""), tabl) 
+}
+}
+for(i in revbestT$CpG){ 
+ list() -> revlistT
+ for(j in 1:length(get(paste(i,"justsnpsT", sep="")))){
+  mget(paste("Trevtable_", i, "_", get(paste(i,"justsnpsT", sep="")), sep=""))[j] -> revlistT[j]
+  names(revlistT[j]) <- get(paste(i,"justsnpsT", sep=""))[j]
+ }
+ assign(paste("Trevct_", i, sep=""), revlistT)
+}
+
+ls(pattern="^Trevct_cg.*$") -> Trevct_all
+
+for(h in Trevct_all){
+ NULL -> Trevhits
+ for(i in 1:length(get(h))) { 
+  if (any(dim(get(h)[[i]]) != c(2,3))) (Trevhits[i] <- "BAD")
+  else ( 
+   if (any(sapply(get(h)[[i]],function(x) x==0))) (Trevhits[i] <- "BAD") 
+   else (Trevhits[i] <- Trevct_all[i]) 
+  )
+ }
+ assign(paste(h, "_hits", sep=""), Trevhits) 
+}
+# in the future, I can change x==0 to x < 3 or something, to make the parameter more stringent 
+
+ls(pattern="^Trevct_cg.*_hits$") -> Trevpot
+
+NULL -> Trevrealhits
+for(i in 1:length(Trevpot)){
+ if (any(get(Trevpot[[i]]) == "BAD")) (Trevrealhits[i] <- "BAD")
+ else (Trevrealhits[i] <- Trevpot[i])
+}
+
+Trevrealhits[!grepl("BAD", Trevrealhits)] -> HITSREVT 
+
+# just in case you had to run it a couple of times 
+HITSFWDC[!grepl("hits_hits_hits", HITSFWDC)] -> HITSFWDC
+HITSFWDC[!grepl("hits_hits", HITSFWDC)] -> HITSFWDC
+HITSFWDC[!grepl("cgcg", HITSFWDC)] -> HITSFWDC 
+HITSREVC[!grepl("hits_hits_hits", HITSREVC)] -> HITSREVC
+HITSREVC[!grepl("hits_hits", HITSREVC)] -> HITSREVC
+HITSREVC[!grepl("cgcg", HITSREVC)] -> HITSREVC 
+HITSFWDT[!grepl("hits_hits_hits", HITSFWDT)] -> HITSFWDT
+HITSFWDT[!grepl("hits_hits", HITSFWDT)] -> HITSFWDT
+HITSFWDT[!grepl("cgcg", HITSFWDT)] -> HITSFWDT 
+HITSREVT[!grepl("hits_hits_hits", HITSREVT)] -> HITSREVT
+HITSREVT[!grepl("hits_hits", HITSREVT)] -> HITSREVT
+HITSREVT[!grepl("cgcg", HITSREVT)] -> HITSREVT 
+
+# clean it up! 
+library(stringr) 
+str_split_fixed(HITSFWDC, "_", 3)[,2] -> fwdC 
+str_split_fixed(HITSREVC, "_", 3)[,2] -> revC 
+str_split_fixed(HITSFWDT, "_", 3)[,2] -> fwdT 
+str_split_fixed(HITSREVT, "_", 3)[,2] -> revT 
+
+setNames(data.frame(matrix(ncol=7, nrow=0)), c(names(indivMRC))) -> fwdCinfo 
+setNames(data.frame(matrix(ncol=7, nrow=0)), c(names(indivMRC))) -> revCinfo 
+setNames(data.frame(matrix(ncol=7, nrow=0)), c(names(indivMRT))) -> fwdTinfo 
+setNames(data.frame(matrix(ncol=7, nrow=0)), c(names(indivMRT))) -> revTinfo 
+
+for(i in fwdC){
+ indivMRC[grep(i, indivMRC$CpG),] -> fwdCinfo[i,]
+} 
+for(i in revC){
+ indivMRC[grep(i, indivMRC$CpG),] -> revCinfo[i,]
+}
+for(i in fwdT){
+ indivMRT[grep(i, indivMRT$CpG),] -> fwdTinfo[i,]
+} 
+for(i in revT){
+ indivMRT[grep(i, indivMRT$CpG),] -> revTinfo[i,]
+}
+
+list(fwdC=fwdCinfo, revC=revCinfo, fwdT=fwdTinfo, revT=revTinfo) -> allhits 
+
+# saveRDS(allhits, file="Z:/nclie/K-MKvM_redo_2018/mendrand_burgess_allhits_v1.rds")
+# capture.output(allhits, file="Z:/nclie/K-MKvM_redo_2018/mendrand_burgess_allhits_v1.txt")
+
+
+
+# global MR! 
+
+system.time(read.table("Z:/nclie/K-MKvM_redo_2018/reganal_K-MKvM_LW_jam_done_2018.txt", header=TRUE) -> regmp)
+regmp[c(regmp$fdr < 0.05),] -> regmpfdr 
+ousemethy[,c(which(names(ousemethy) %in% row.names(regmpfdr)))] -> globmethy 
+# globmethy is missing two CpGs that regmpfdr has. I think this has to do with the fact that regmpfdr originated from methylation data using M values, while ousemethy originated from methylation data using beta values. I really need to re-look at how I associate methylation with phenotype. let's move on for now. 
+
+# global MR using only the most differentially methylated loci 
+rowMeans(globmethy) -> globmethy$SampMeans 
+# forward MR 
+as.matrix(ousegeno2) -> g
+as.vector(globmethy$SampMeans) -> x 
+length(x) -> N 
+g0 = as.matrix(g[y==0,])
+tsps.glm = glm(y~predict(lm(x[y==0]~g0), newdata=list(g0=g)), family=binomial)
+fwdMR_glob1 = summary(tsps.glm)
+fwdMR_glob1OR = exp(coef(tsps.glm))
+# reverse MR 
+library(ivpack)
+as.matrix(ousegeno2) -> g
+as.vector(globmethy$SampMeans) -> x 
+length(x) -> N 
+ivmodel = ivreg(x~y|g, x=TRUE)
+revMR_glob1 = summary(ivmodel)
+revMR_glob1OR = exp(coef(ivmodel))
+
+# results of glob1: neither P value is significant 
+
+# global MR using all CpG loci 
+rowMeans(ousemethy) -> ousemethy$SampMeans
+# forward MR 
+as.matrix(ousegeno2) -> g
+as.vector(ousemethy$SampMeans) -> x 
+length(x) -> N 
+g0 = as.matrix(g[y==0,])
+tsps.glm = glm(y~predict(lm(x[y==0]~g0), newdata=list(g0=g)), family=binomial)
+fwdMR_glob2 = summary(tsps.glm)
+fwdMR_glob2OR = exp(coef(tsps.glm))
+# reverse MR 
+library(ivpack)
+as.matrix(ousegeno2) -> g
+as.vector(ousemethy$SampMeans) -> x 
+length(x) -> N 
+ivmodel = ivreg(x~y|g, x=TRUE)
+revMR_glob2 = summary(ivmodel)
+revMR_glob2OR = exp(coef(ivmodel))
+
+# results of glob2: neither P value is significant 
+
+# save it all 
+globMR <- list(fwdMR_glob1=fwdMR_glob1, revMR_glob1=revMR_glob1, fwdMR_glob2=fwdMR_glob2, revMR_glob2=revMR_glob2)
+setNames(data.frame(matrix(ncol = 2, nrow = 2)), c("fwdMR_pval", "revMR_pval")) -> globMR_pvals 
+fwdMR_glob1$coefficients[2,4] -> globMR_pvals[1,1]
+revMR_glob1$coefficients[2,4] -> globMR_pvals[1,2]
+fwdMR_glob2$coefficients[2,4] -> globMR_pvals[2,1]
+revMR_glob2$coefficients[2,4] -> globMR_pvals[2,2]
+row.names(globMR_pvals) <- c("glob1", "glob2") 
+rbind(fwdMR_glob1OR, revMR_glob1OR, fwdMR_glob2OR, revMR_glob2OR) -> globOR 
+data.frame(globOR) -> globORdf
+names(globORdf) <- c("Intercept_OR", "MR_OR") 
+# saveRDS(globMR, file="Z:/nclie/K-MKvM_redo_2018/globMR.rds")
+# write.table(globMR_pvals, "Z:/nclie/K-MKvM_redo_2018/globMR_pvals.txt", quote=FALSE, row.names=TRUE, col.names=TRUE, sep="\t") 
+# write.table(globORdf, "Z:/nclie/K-MKvM_redo_2018/globMR_OR.txt", quote=FALSE, row.names=TRUE, col.names=TRUE, sep="\t")
+
+

@@ -1,0 +1,111 @@
+# REAL_MatrixEQTL_script_for_Precious.docx
+# on cnrcsm1, navigate to /cnrcseq_home/from_Natasha_to_Precious
+# open R 
+
+library(data.table)
+read.table("tomato_for_MatrixEQTL_DC_SNPs_all.txt", header=TRUE) -> snpss
+read.table("tomato_for_MatrixEQTL_SNP_positions_all.txt", header=TRUE) -> snpposs
+fread("tomato_for_MatrixEQTL_DC_Methylation.txt", header=TRUE) -> methys
+read.table("tomato_for_MatrixEQTL_CpG_positions.txt", header=TRUE) -> cpgpos
+
+# source("Matrix_eQTL_R/Matrix_eQTL_engine.r");
+library(MatrixEQTL)
+
+## Location of the package with the data files.
+# base.dir = find.package('MatrixEQTL');
+base.dir = '.';
+
+## Settings
+
+# Linear model to use, modelANOVA, modelLINEAR, or modelLINEAR_CROSS
+useModel = modelLINEAR; # modelANOVA, modelLINEAR, or modelLINEAR_CROSS
+
+# Genotype file name
+SNP_file_name = "tomato_for_MatrixEQTL_DC_SNPs_all.txt";
+snps_location_file_name = "tomato_for_MatrixEQTL_SNP_positions_all.txt"
+
+# Gene expression file name
+expression_file_name = "tomato_for_MatrixEQTL_DC_Methylation.txt";
+gene_location_file_name = "tomato_for_MatrixEQTL_CpG_positions.txt" 
+
+# Covariates file name
+# Set to character() for no covariates
+covariates_file_name = character()
+
+# Output file name
+output_file_name_cis = "tomato_MatrixEQTL_beta_cis1Mb_try1.txt";
+output_file_name_tra = "tomato_MatrixEQTL_beta_trans1Mb_try1.txt";
+
+# Only associations significant at this level will be saved
+pvOutputThreshold_cis = 0.05; 		# p value threshold 
+pvOutputThreshold_tra = 0;		# will save results less than 0 - essentially don't save any results 
+
+# Error covariance matrix
+# Set to numeric() for identity.
+errorCovariance = numeric();
+
+# Distance for local gene-SNP pairs
+cisDist = 1e6;
+
+## Load genotype data
+
+snps = SlicedData$new();
+snps$fileDelimiter = "\t";      # the TAB character
+snps$fileOmitCharacters = "NA"; # denote missing values;
+snps$fileSkipRows = 1;          # one row of column labels
+snps$fileSkipColumns = 1;       # one column of row labels
+snps$fileSliceSize = 2000;      # read file in slices of 2,000 rows
+snps$LoadFile(SNP_file_name);
+
+## Load gene expression data
+
+gene = SlicedData$new();
+gene$fileDelimiter = "\t";      # the TAB character
+gene$fileOmitCharacters = "NA"; # denote missing values;
+gene$fileSkipRows = 1;          # one row of column labels
+gene$fileSkipColumns = 1;       # one column of row labels
+gene$fileSliceSize = 2000;      # read file in slices of 2,000 rows
+gene$LoadFile(expression_file_name);
+
+## Load covariates
+
+cvrt = SlicedData$new();
+cvrt$fileDelimiter = "\t";      # the TAB character
+cvrt$fileOmitCharacters = "NA"; # denote missing values;
+cvrt$fileSkipRows = 1;          # one row of column labels
+cvrt$fileSkipColumns = 1;       # one column of row labels
+if(length(covariates_file_name)>0) {
+cvrt$LoadFile(covariates_file_name);
+}
+
+## Run the analysis
+snpspos = read.table(snps_location_file_name, header = TRUE, stringsAsFactors = FALSE);
+genepos = read.table(gene_location_file_name, header = TRUE, stringsAsFactors = FALSE);
+
+me = Matrix_eQTL_main(
+  snps = snps, 
+  gene = gene, 
+  cvrt = cvrt,
+  output_file_name      = output_file_name_tra,
+  pvOutputThreshold     = pvOutputThreshold_tra,
+  useModel = useModel, 
+  errorCovariance = errorCovariance, 
+  verbose = TRUE, 
+  output_file_name.cis  = output_file_name_cis,
+  pvOutputThreshold.cis = pvOutputThreshold_cis,
+  snpspos = snpspos, 
+  genepos = genepos,
+  cisDist = cisDist,
+  pvalue.hist = "qqplot",
+  min.pv.by.genesnp = FALSE,
+  noFDRsaveMemory = FALSE);
+
+## Make the QQ-plot of local p-values
+
+png("tomato_MatrixEQTL_beta_cis1Mb_try1_QQ.png", width = 600, height = 600, units = "px")
+plot(me)
+dev.off()
+
+# download the png file to your machine to view it 
+# take a look at the results file (tomato_MatrixEQTL_beta_cis1Mb_try1.txt). What SNP-CpG pairs are most significant? in what genes? how can they tie back to OCM/malnutrition? 
+

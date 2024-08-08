@@ -1,0 +1,121 @@
+## MALAWI 
+for(i in 1:22){
+read.table(paste("rfmix_chr",i,"_27Jul2022.msp.tsv",sep=""), comment.char='', skip=2) -> chrr
+read.table(paste("rfmix_chr",i,"_27Jul2022.msp.tsv",sep=""), comment.char='', nrows=2, fill=TRUE) -> chrrheader
+chrrheader[2,] -> hcleaning 
+hcleaning[,c(1:5,7:ncol(hcleaning))] -> hclean
+names(chrr) <- hclean
+assign(paste("chr",i,sep=""),chrr)
+
+chrr[-1,grep("^5", chrr[2,])] -> chrcoun
+
+chrcoun[,seq(from=1, to=dim(chrcoun)[2], by=2)] -> chrrhap1
+names(chrrhap1) <- chrrhap1[1,]
+chrrhap1[-1,] -> chrrhap1
+chrrhap1 <- as.data.frame(sapply(chrrhap1, as.numeric))
+
+chrcoun[,seq(from=2, to=dim(chrcoun)[2], by=2)] -> chrrhap2
+names(chrrhap2) <- chrrhap2[1,]
+chrrhap2[-1,] -> chrrhap2
+chrrhap2 <- as.data.frame(sapply(chrrhap2, as.numeric))
+
+cbind(chrrhap1, "mode"=apply(chrrhap1, 1, function(x) names(which.max(table(x))))) -> chrhap1m
+chrhap1m$forbarplot <- 1
+
+cbind(chrrhap2, "mode"=apply(chrrhap2, 1, function(x) names(which.max(table(x))))) -> chrhap2m
+chrhap2m$forbarplot <- 1
+
+assign(paste("chr",i,"hap1m",sep=""), chrhap1m)
+assign(paste("chr",i,"hap2m",sep=""), chrhap2m)
+}
+
+# karyogram
+# LWK=0, MSL=1
+# adjust xlim to greater than the number of rows (snps) in the largest msp.tsv file 
+png("rfmix_27Jul2022_karyogram-mode_Malawi.png", height=1600, width=1600, res=200)
+layout(mat=matrix(c(1:44), nrow=44,  ncol=1))
+
+for(i in 1:22){
+par(mar=c(0.05,0,0.1,0))
+barplot(get(paste("chr",i,"hap1m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap1m", sep=""))$mode==0, "yellow", "blue"))
+
+par(mar=c(0.1,0,0.05,0))
+barplot(get(paste("chr",i,"hap2m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap2m", sep=""))$mode==0, "yellow", "blue"))
+}
+dev.off()
+
+# pick a random individual! 
+# adjust xlim to greater than the number of rows (snps) in the largest msp.tsv file 
+png("rfmix_27Jul2022_karyogram-col35_Malawi.png", height=1600, width=1600, res=200)
+layout(mat=matrix(c(1:44), nrow=44,  ncol=1))
+
+for(i in 1:22){
+par(mar=c(0.05,0,0.1,0))
+barplot(get(paste("chr",i,"hap1m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap1m", sep=""))[,35]==0, "yellow", "blue"))
+
+par(mar=c(0.1,0,0.05,0))
+barplot(get(paste("chr",i,"hap2m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap2m", sep=""))[,35]==0, "yellow", "blue"))
+}
+dev.off()
+
+
+## JAMAICA  
+for(i in 1:22){
+read.table(paste("rfmix_chr",i,"_27Jul2022.msp.tsv",sep=""), comment.char='', skip=2) -> chrr
+read.table(paste("rfmix_chr",i,"_27Jul2022.msp.tsv",sep=""), comment.char='', nrows=2, fill=TRUE) -> chrrheader
+chrrheader[2,] -> hcleaning 
+hcleaning[,c(1:5,7:ncol(hcleaning))] -> hclean
+names(chrr) <- hclean
+assign(paste("chr",i,sep=""),chrr)
+
+chrr[-1,grep("^JM", chrr[2,])] -> chrcoun
+
+chrcoun[,seq(from=1, to=dim(chrcoun)[2], by=2)] -> chrrhap1
+names(chrrhap1) <- chrrhap1[1,]
+chrrhap1[-1,] -> chrrhap1
+chrrhap1 <- as.data.frame(sapply(chrrhap1, as.numeric))
+
+chrcoun[,seq(from=2, to=dim(chrcoun)[2], by=2)] -> chrrhap2
+names(chrrhap2) <- chrrhap2[1,]
+chrrhap2[-1,] -> chrrhap2
+chrrhap2 <- as.data.frame(sapply(chrrhap2, as.numeric))
+
+cbind(chrrhap1, "mode"=apply(chrrhap1, 1, function(x) names(which.max(table(x))))) -> chrhap1m
+chrhap1m$forbarplot <- 1
+
+cbind(chrrhap2, "mode"=apply(chrrhap2, 1, function(x) names(which.max(table(x))))) -> chrhap2m
+chrhap2m$forbarplot <- 1
+
+assign(paste("chr",i,"hap1m",sep=""), chrhap1m)
+assign(paste("chr",i,"hap2m",sep=""), chrhap2m)
+}
+
+# karyogram
+# CEU=0, LWK=1, MSL=2	
+# adjust xlim to greater than the number of rows (snps) in the largest msp.tsv file 
+png("rfmix_27Jul2022_karyogram-mode_Jamaica.png", height=1600, width=1600, res=200)
+layout(mat=matrix(c(1:44), nrow=44,  ncol=1))
+
+for(i in 1:22){
+par(mar=c(0.05,0,0.1,0))
+barplot(get(paste("chr",i,"hap1m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap1m", sep=""))$mode==0, "yellow", "blue"))
+
+par(mar=c(0.1,0,0.05,0))
+barplot(get(paste("chr",i,"hap2m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap2m", sep=""))$mode==0, "yellow", "blue"))
+}
+dev.off()
+
+# pick a random individual! 
+# adjust xlim to greater than the number of rows (snps) in the largest msp.tsv file 
+png("rfmix_27Jul2022_karyogram-col35_Jamaica.png", height=1600, width=1600, res=200)
+layout(mat=matrix(c(1:44), nrow=44,  ncol=1))
+
+for(i in 1:22){
+par(mar=c(0.05,0,0.1,0))
+barplot(get(paste("chr",i,"hap1m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap1m", sep=""))[,35]==0, "yellow", "blue"))
+
+par(mar=c(0.1,0,0.05,0))
+barplot(get(paste("chr",i,"hap2m", sep=""))$forbarplot, ylim=c(0,1), border=NA, space=0, xlim=c(0,600), xaxt='n', yaxt='n', col=ifelse(get(paste("chr",i,"hap2m", sep=""))[,35]==0, "yellow", "blue"))
+}
+dev.off()
+

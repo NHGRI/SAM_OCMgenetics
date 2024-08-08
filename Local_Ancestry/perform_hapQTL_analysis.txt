@@ -1,0 +1,50 @@
+# prepare_for_hapQTL_attempt5.docx
+# on BCM server 
+
+# make the cov.text file in R i suppose 
+read.table("sex_Nov19_2018_corrected.txt") -> sex 
+read.table("HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_pruned_ibdQC_MDS.mds", header=TRUE) -> mds 
+names(sex) <- c("FID", "IID", "SEX")
+merge(sex, mds, by=c("FID","IID")) -> ohno 
+unique(ohno) -> uniq
+# after much stress, I have found that JMICSM346 is displayed twice, once with sex = 0 and once with sex = 1. so i'm deleting the row where sex=0. no idea why this occurs; in the "sex" file JMICSM346 appears only once, with sex = 1. 
+uniq[c(1:394,396:731),] -> whoop
+# check the right row is excluded 
+whoop[394:396,]
+read.table("HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC.fam") -> fam
+whoop[order(match(whoop$IID,fam$V2)),] -> done 
+write.table(done[,c(3,5,6,7)], "HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C3_Jun04_2019.txt", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ")
+write.table(done[,c(3,5,6,7,8)], "HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C4_Jun04_2019.txt", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ")
+write.table(done[,c(3,5,6,7,8,9)], "HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C5_Jun04_2019.txt", quote=FALSE, row.names=FALSE, col.names=FALSE, sep=" ")
+
+scp nclie@dcl-hanch-p01.ad.bcm.edu:/mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C3_Jun04_2019.txt natasha@10.23.20.86:~/hapQTL/exampleMalnutrition/May2019/HapFiles/
+scp nclie@dcl-hanch-p01.ad.bcm.edu:/mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C4_Jun04_2019.txt natasha@10.23.20.86:~/hapQTL/exampleMalnutrition/May2019/HapFiles/
+scp nclie@dcl-hanch-p01.ad.bcm.edu:/mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C5_Jun04_2019.txt natasha@10.23.20.86:~/hapQTL/exampleMalnutrition/May2019/HapFiles/
+
+
+## on Aarti's server (10.23.20.86), in /media/HDDSpace/natasha 
+
+# all SNPs 
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C3_Jun04_2019.txt -o try3_allSNPs_C1-C3_Jun04_2019
+
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C4_Jun04_2019.txt -o try3_allSNPs_C1-C4_Jun04_2019
+
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C5_Jun04_2019.txt -o try3_allSNPs_C1-C5_Jun04_2019
+
+
+# OCM SNPs
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C3_Jun04_2019.txt -o try3_ocmSNPs_C1-C3_Jun04_2019
+
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C4_Jun04_2019.txt -o try3_ocmSNPs_C1-C4_Jun04_2019
+
+~/hapQTL/./hapQTL-lin -sem 1 -g ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.geno.txt -p 1 -pos ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pos.txt -exclude-maf 0.01 -FILE ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_extractOCM_recode-bimbam.recode.pheno.txt -DOC ~/hapQTL/exampleMalnutrition/May2019/HapFiles/HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC_recode-bimbam.recode.cov_C1-C5_Jun04_2019.txt -o try3_ocmSNPs_C1-C5_Jun04_2019
+
+
+
+## for jamaica and malawi only - try2_Jamaica_nocov and try2_Malawi_nocov are still legitimate 
+
+# need to do jamaica ocm, malawi ocm 
+# need to do jamaica all, malawi all, jamaica ocm, malawi ocm, with covariates! (mds for jam only, mds for mal only) 
+
+
+

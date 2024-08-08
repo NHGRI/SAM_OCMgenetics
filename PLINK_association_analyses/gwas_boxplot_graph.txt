@@ -1,0 +1,12 @@
+# forOmer_Malawiplot_script.docx
+read.table("forOmer_MalawiHaplotypeData_MalesFemales.txt", header=TRUE) -> hapdata
+hapdata$Sex <- factor(hapdata$Sex, levels=c("M", "F"))
+
+library(ggplot2)
+
+ggplot(data=hapdata, aes(y=Frequency, x=Sex, fill=Haplotype, label=Frequency)) + 
+  geom_bar(stat="identity", position='stack') + 
+  facet_grid( ~ Category) + 
+  geom_text(size = 3, position = position_stack(vjust = 0.5))
+
+
