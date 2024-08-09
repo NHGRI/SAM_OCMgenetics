@@ -1,0 +1,23 @@
+#!/bin/bash
+
+module load Eagle
+module load selscan
+
+mkdir -p /lscratch/$SLURM_JOBID/tmp; \
+cp /data/Hanserv/liq4/y2023/gatkOct23/plink_QC/malawiAll_SNP.pkQC.HWE-6.Oct2023.g1k_v37_decoy.chrXXXIIXXX.{map,ped} /lscratch/$SLURM_JOBID/tmp/
+
+module load plink/2.0
+# ped map to vcf 
+plink2 --pedmap /lscratch/$SLURM_JOBID/tmp/malawiAll_SNP.pkQC.HWE-6.Oct2023.g1k_v37_decoy.chrXXXIIXXX --recode vcf --out /lscratch/$SLURM_JOBID/tmp/malawi_selScan.preEagle.chrXXXIIXXX
+
+#cp /lscratch/$SLURM_JOBID/tmp/malawi_selScan.preEagle.chrXXXIIXXX.vcf ./tmp/
+
+/data/Hanserv/liq4/prog/Eagle_v2.4.1/eagle \
+ --vcf=/lscratch/$SLURM_JOBID/tmp/malawi_selScan.preEagle.chrXXXIIXXX.vcf \
+ --geneticMapFile=/data/Hanserv/liq4/prog/Eagle_v2.4.1/tables/genetic_map_hg19_withX.txt.gz \
+      --outPrefix=/lscratch/$SLURM_JOBID/tmp/chrXXXIIXXXPhase \
+      --numThreads=4 \
+      2>&1 | tee eagle.malawi.chrXXXIIXXX.log
+
+cp /lscratch/$SLURM_JOBID/tmp/chrXXXIIXXXPhase.vcf.gz ./tmp/
+

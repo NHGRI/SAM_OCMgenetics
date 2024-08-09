@@ -1,0 +1,304 @@
+# selscan_sigofsel_cleanerscript.docx
+
+# clean up data 
+# in /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/
+for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --list-duplicate-vars suppress-first --out chr${i}_dupvars
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --exclude chr${i}_dupvars.dupvar --make-bed --out chr${i}_rmdups
+done
+
+for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --list-duplicate-vars suppress-first --out chr${i}_dupvars
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --exclude chr${i}_dupvars.dupvar --keep /mnt/hanchardlab/nclie/jamaica_samples_GS2.txt --make-bed --out chr${i}_rmdups_jam
+done
+
+for i in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --list-duplicate-vars suppress-first --out chr${i}_dupvars
+/SOFTWARE/plink --bfile HGTJAM_GSproject2_v3_chr${i} --exclude chr${i}_dupvars.dupvar --keep /mnt/hanchardlab/nclie/malawi_samples_GS2.txt --make-bed --out chr${i}_rmdups_mal
+done
+
+# phase data 
+# in cnrcsm1 server, /cnrcseq_home/nclie/sigofsel_try1 
+for i in 1 2 3 4 5 6 7 8 9 
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1.phased.haps chr${i}_v1.phased.sample --thread 4 --force
+done
+for i in 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1.phased.haps chr${i}_v1.phased.sample --thread 4 --force
+done 
+# chr 13 had 9 samples with missing data and they told me to use --force so i did 
+# chr 16 had 16 individuals missing, chr 17, chr 19, chr20, chr22 
+
+for i in 1 2 3 4 5 6 7 8 9 
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_jam.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_jam.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_jam.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1_jam.phased.haps chr${i}_v1_jam.phased.sample --thread 4 --force
+done 
+for i in 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_jam.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_jam.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_jam.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1_jam.phased.haps chr${i}_v1_jam.phased.sample --thread 4 --force
+done 
+
+for i in 1 2 3 4 5 6 7 8 9 
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_mal.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_mal.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr0${i}_rmdups_mal.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1_mal.phased.haps chr${i}_v1_mal.phased.sample --thread 4 --force
+done 
+for i in 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+shapeit --input-bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_mal.bed /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_mal.bim /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_mal.fam --input-map /mnt/hanchardlab/nclie/1000G_Phase3_genetic_maps/genetic_map_chr${i}_combined_b37.txt --output-max chr${i}_v1_mal.phased.haps chr${i}_v1_mal.phased.sample --thread 4 --force
+done 
+
+# format data 
+# open R 
+for(i in 1:22){
+read.table(paste("chr",i,"_v1.phased.haps", sep="")) -> hapss 
+hapss[,-c(1:5)] -> hapss2 
+t(hapss2) -> thapss2
+write.table(thapss2, paste("chr",i,"_norefalt_v2.phased.haps", sep=""), row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
+}
+
+for(i in 1:22){
+read.table(paste("chr",i,"_v1_jam.phased.haps", sep="")) -> hapss 
+hapss[,-c(1:5)] -> hapss2 
+t(hapss2) -> thapss2
+write.table(thapss2, paste("chr",i,"_norefalt_v2_jam.phased.haps", sep=""), row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
+}
+
+for(i in 1:22){
+read.table(paste("chr",i,"_v1_mal.phased.haps", sep="")) -> hapss 
+hapss[,-c(1:5)] -> hapss2 
+t(hapss2) -> thapss2
+write.table(thapss2, paste("chr",i,"_norefalt_v2_mal.phased.haps", sep=""), row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
+}
+
+
+# exit R 
+
+##### MADE A SHELL SCRIPT 
+nohup ./selscan_ehh-win_50k_25k_script.sh & 
+
+# contents of shell script below 
+# ehh-win 50k 
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihs --hap chr${i}_norefalt_v2.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 50000 --out selscan_ihs_chr${i}_try2_ehh-win50k
+done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihs --hap chr${i}_norefalt_v2_jam.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 50000 --out selscan_ihs_chr${i}_jam_try2_ehh-win50k
+done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+selscan --ihs --hap chr${i}_norefalt_v2_mal.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 50000 --out selscan_ihs_chr${i}_mal_try2_ehh-win50k
+done
+
+# ehh-win 25k now 
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihs --hap chr${i}_norefalt_v2.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 2500 --out selscan_ihs_chr${i}_try3_ehh-win25k
+done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihs --hap chr${i}_norefalt_v2_jam.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 2500 --out selscan_ihs_chr${i}_jam_try3_ehh-win25k
+done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
+do 
+selscan --ihs --hap chr${i}_norefalt_v2_mal.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --ehh-win 2500 --out selscan_ihs_chr${i}_mal_try3_ehh-win25k
+done
+
+
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihh12 --hap chr${i}_tnorefalt_v2.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --out selscan_ihh12_chr${i}_try2; done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihh12 --hap chr${i}_norefalt_v2_jam.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --out selscan_ihh12_chr${i}_jam_try1; done
+
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22; do selscan --ihh12 --hap chr${i}_norefalt_v2_mal.phased.haps --map /mnt/hanchardlab/nclie/HGTJAM_GSproject2_v3_splitbychr/chr${i}_rmdups_pedmapformat.map --out selscan_ihh12_chr${i}_mal_try1; done
+
+
+
+## back into R on computer
+
+setwd("Y:/HGTJAM_GSproject/HGTJAM_GSproject2/sigofsel_try1")
+
+# do _try3, _jam_try3, _mal_try3
+for(i in 1:22){
+read.table(paste("selscan_ihs_chr",i,"_try3_ehh-win25k.ihs.out",sep="")) -> ihs
+assign(paste("ihs",i,sep=""), ihs)
+}
+
+for(i in 1:22){
+get(paste("ihs",i,sep="")) -> tempihs 
+tempihs$V7 <- c(i)
+assign(paste("ihs",i,sep=""),tempihs)
+}
+
+rbind(ihs1,ihs2,ihs3,ihs4,ihs5,ihs6,ihs7,ihs8,ihs9,ihs10,ihs11,ihs12,ihs13,ihs14,ihs15,ihs16,ihs17,ihs18,ihs19,ihs20,ihs21,ihs22) -> allihs_try1
+
+allihs_try1[order(allihs_try1$V6),] -> orderedihs
+row.names(orderedihs) <- NULL
+
+
+
+mean(allihs_try1$V6) 
+sd(allihs_try1$V6)
+
+# GABBR2 - kgp9506585, snp-known77216165, h3a_37_9_101460283_T_C, kgp9065692, snp-known337556
+# PRICKLE2 - rs753562, rs17664202, rs153740, rs153737, rs161666, rs153728, kgp8116060
+
+allihs_try1[grep("kgp9506585", allihs_try1$V1),]
+allihs_try1[grep("snp-known77216165", allihs_try1$V1),]
+allihs_try1[grep("h3a_37_9_101460283_T_C", allihs_try1$V1),]
+allihs_try1[grep("kgp9065692", allihs_try1$V1),]
+allihs_try1[grep("snp-known337556", allihs_try1$V1),]
+
+allihs_try1[grep("rs753562", allihs_try1$V1),]
+allihs_try1[grep("rs17664202", allihs_try1$V1),]
+allihs_try1[grep("rs153740", allihs_try1$V1),]
+allihs_try1[grep("rs153737", allihs_try1$V1),]
+allihs_try1[grep("rs161666", allihs_try1$V1),]
+allihs_try1[grep("rs153728", allihs_try1$V1),]
+allihs_try1[grep("kgp8116060", allihs_try1$V1),]
+
+# percentile 
+mean(allihs_try1$V6 <= ?)
+
+# hist 
+hist(allihs_try1$V6, main="Distribution of iHS scores", xlab="iHS", ylab="Frequency", col="cyan", breaks=30)
+mtext("All Samples")
+
+
+# normalize the data - center around zero and roughly unit variance, "standardization" 
+library(caret)
+preproc1 <- preProcess(orderedihs[,c(1,6)], method=c("center", "scale"))
+norm1 <- predict(preproc1, orderedihs[,c(1,6)])
+summary(norm1)
+
+merge(orderedihs, norm1, by=("V1")) -> normihs_try1
+dfnormihs <- data.frame("CHR"=normihs_try1$V7, "SNP"=normihs_try1$V1, "POS"=normihs_try1$V2, "1freq"=normihs_try1$V3, "ihh1"=normihs_try1$V4, "ihh0"=normihs_try1$V5, "unstandardized_iHS"=normihs_try1$V6.x, "standardized_iHS"=normihs_try1$V6.y)
+dfnormihs[with(dfnormihs, order(CHR, POS)),] -> odfnormihs
+
+hist(odfnormihs$standardized_iHS, main="Distribution of iHS scores", xlab="iHS", ylab="Frequency", col="cyan", breaks=30)
+mtext("All Samples")
+
+odfnormihs[grep("kgp9506585", odfnormihs$V1),]
+odfnormihs[grep("snp-known77216165", odfnormihs$V1),]
+odfnormihs[grep("h3a_37_9_101460283_T_C", odfnormihs$V1),]
+odfnormihs[grep("kgp9065692", odfnormihs$V1),]
+odfnormihs[grep("snp-known337556", odfnormihs$V1),]
+
+odfnormihs[grep("rs753562", odfnormihs$V1),]
+odfnormihs[grep("rs17664202", odfnormihs$V1),]
+odfnormihs[grep("rs153740", odfnormihs$V1),]
+odfnormihs[grep("rs153737", odfnormihs$V1),]
+odfnormihs[grep("rs161666", odfnormihs$V1),]
+odfnormihs[grep("rs153728", odfnormihs$V1),]
+odfnormihs[grep("kgp8116060", odfnormihs$V1),]
+
+# positive control, beta-globin gene
+subset(odfnormihs,odfnormihs$CHR==11 & odfnormihs$POS>=5246696 & odfnormihs$POS<=5248301)
+# only one SNP hmm 
+
+
+# look at significant genes from Choudhury 2020 h3africa paper supplementary table 8
+chrlist <- c(1,1,1,2,2,4,4,4,5,6,6,6,7,8,9,9,9,9,9,10,11,12,13,14,16,16,16,17,17,17,19,19,19,19,19,20,21,22,22)
+
+startlist <- c(41492872,100174259,185703683,175424300,183580999,76954835,84213614,100044808,141371314,30509154,75947391,75962640,72742167,1703944,115142217,133046882,139743176,139756571,139776364,118305443,4115937,79968759,53226844,66974125,1883984,2479395,30759591,8377523,29295803,59758627,42381190,42387228,42470734,45853095,47793280,20033158,34775202,40440821,45739944)
+
+endlist <- c(41707826,100232187,186160085,175547644,183659191,76962568,84256306,100078949,141392606,30524951,75960039,75994684,72772634,1734738,115234690,133309510,139745488,139760738,139821059,118327367,4160106,80084877,53275044,67648520,1934295,2508855,30772490,8534079,29326929,59940882,42385439,42434302,42501649,45874176,47825323,20341346,34851655,40731812,45809500)
+
+h3ahits <- data.frame(matrix(ncol = 8, nrow = 0))
+names(h3ahits) <- c("CHR","SNP","POS","X1freq","ihh1","ihh0","unstandardized_iHS","standardized_iHS")
+
+for(i in 1:length(chrlist)){
+odfnormihs[c(odfnormihs$CHR == chrlist[i] & odfnormihs$POS > startlist[i] & odfnormihs$POS < endlist[i]),] -> hitz
+rbind(h3ahits, hitz) -> h3ahits
+}
+
+# extract SNPs in h3a genes that have stdev > 2 (for standardized iHS) 
+subset(h3ahits,h3ahits$standardized_iHS > 2) -> posh3ahits
+
+
+-----
+
+
+setwd("Y:/HGTJAM_GSproject/HGTJAM_GSproject2/sigofsel_try1")
+
+# switch between jam and mal and nothing (all)
+for(i in 1:22){
+read.table(paste("selscan_ihh12_chr",i,"_try1.ihh12.out",sep=""), header=TRUE) -> ihh12
+assign(paste("ihh12_",i,sep=""), ihh12)
+}
+
+for(i in 1:22){
+get(paste("ihh12_",i,sep="")) -> tempihh12 
+tempihh12$chr <- c(i)
+assign(paste("ihh12_",i,sep=""),tempihh12)
+}
+
+rbind(ihh12_1,ihh12_2,ihh12_3,ihh12_4,ihh12_5,ihh12_6,ihh12_7,ihh12_8,ihh12_9,ihh12_10,ihh12_11,ihh12_12,ihh12_13,ihh12_14,ihh12_15,ihh12_16,ihh12_17,ihh12_18,ihh12_19,ihh12_20,ihh12_21,ihh12_22) -> allihh12_try1
+
+allihh12_try1[order(allihh12_try1$ihh12),] -> orderedihh12
+
+> mean(allihh12_try1$ihh12) 
+[1] 0.01808905
+> sd(allihh12_try1$ihh12)
+[1] 0.02097648
+
+# remember to change "all samples" to "jamaica" and "malawi" as appropriate
+hist(orderedihh12$ihh12, main="Distribution of iHH12 scores", xlab="iHH12", ylab="Frequency", col="cyan", breaks=30)
+mtext("All Samples")
+
+orderedihh12[grep("kgp9506585$", orderedihh12$id),]
+orderedihh12[grep("snp-known77216165$", orderedihh12$id),]
+orderedihh12[grep("h3a_37_9_101460283_T_C$", orderedihh12$id),]
+orderedihh12[grep("kgp9065692$", orderedihh12$id),]
+orderedihh12[grep("snp-known337556$", orderedihh12$id),]
+
+orderedihh12[grep("rs753562$", orderedihh12$id),4]
+orderedihh12[grep("rs17664202$", orderedihh12$id),4]
+orderedihh12[grep("rs153740$", orderedihh12$id),4]
+orderedihh12[grep("rs153737$", orderedihh12$id),4]
+orderedihh12[grep("rs161666$", orderedihh12$id),4]
+orderedihh12[grep("rs153728$", orderedihh12$id),4]
+orderedihh12[grep("kgp8116060$", orderedihh12$id),4]
+
+# percentile 
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs753562$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs17664202$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs153740$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs153737$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs161666$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("rs153728$", orderedihh12$id),4])
+mean(orderedihh12$ihh12 <= orderedihh12[grep("kgp8116060$", orderedihh12$id),4])
+
+---
+
+
+# positive control, beta-globin gene
+subset(odfnormihs,odfnormihs$CHR==11 & odfnormihs$POS>=5246696 & odfnormihs$POS<=5248301)
+# only one SNP hmm 
+
+
+# look at significant genes from Choudhury 2020 h3africa paper supplementary table 8
+chrlist <- c(1,1,1,2,2,4,4,4,5,6,6,6,7,8,9,9,9,9,9,10,11,12,13,14,16,16,16,17,17,17,19,19,19,19,19,20,21,22,22)
+
+startlist <- c(41492872,100174259,185703683,175424300,183580999,76954835,84213614,100044808,141371314,30509154,75947391,75962640,72742167,1703944,115142217,133046882,139743176,139756571,139776364,118305443,4115937,79968759,53226844,66974125,1883984,2479395,30759591,8377523,29295803,59758627,42381190,42387228,42470734,45853095,47793280,20033158,34775202,40440821,45739944)
+
+endlist <- c(41707826,100232187,186160085,175547644,183659191,76962568,84256306,100078949,141392606,30524951,75960039,75994684,72772634,1734738,115234690,133309510,139745488,139760738,139821059,118327367,4160106,80084877,53275044,67648520,1934295,2508855,30772490,8534079,29326929,59940882,42385439,42434302,42501649,45874176,47825323,20341346,34851655,40731812,45809500)
+
+h3ahits <- data.frame(matrix(ncol = 8, nrow = 0))
+names(h3ahits) <- c("CHR","SNP","POS","X1freq","ihh1","ihh0","unstandardized_iHS","standardized_iHS")
+
+for(i in 1:length(chrlist)){
+odfnormihs[c(odfnormihs$CHR == chrlist[i] & odfnormihs$POS > startlist[i] & odfnormihs$POS < endlist[i]),] -> hitz
+rbind(h3ahits, hitz) -> h3ahits
+}
+
+# extract SNPs in h3a genes that have stdev > 2 (for standardized iHS) 
+subset(h3ahits,h3ahits$standardized_iHS > 2) -> posh3ahits
+
+
+
+
+
+
+
