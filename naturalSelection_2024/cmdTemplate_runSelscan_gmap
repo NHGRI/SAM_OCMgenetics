@@ -1,0 +1,18 @@
+#!/bin/bash
+mkdir -p /lscratch/$SLURM_JOBID/tmp; \
+
+module load selscan
+
+cp ./tmp/chrXXXIIXXXPhase.vcf.gz /lscratch/$SLURM_JOBID/tmp/
+
+# unzip file 
+gzip -d /lscratch/$SLURM_JOBID/tmp/chrXXXIIXXXPhase.vcf.gz
+
+grep '^XXXIIXXX ' ../refData/genetic_map_hg19_withX.txt | awk '{print $2, $3, $4}' > /lscratch/$SLURM_JOBID/tmp/genetic_map_hg19_chrXXXIIXXX.txt
+ 
+
+# get map
+module load plink/1.9
+plink --vcf /lscratch/$SLURM_JOBID/tmp/chrXXXIIXXXPhase.vcf --cm-map /lscratch/$SLURM_JOBID/tmp/genetic_map_hg19_chrXXXIIXXX.txt XXXIIXXX --recode --out ../re_selscan/chrXXXIIXXXPhase.gMap
+
+selscan --ihs  --vcf /lscratch/$SLURM_JOBID/tmp/chrXXXIIXXXPhase.vcf --map ../re_selscan/chrXXXIIXXXPhase.gMap.map --out ../re_selscan/selscan_gmap_malawiWGS_chrXXXIIXXX &> gmap_selscanchrXXXIIXXX.log
