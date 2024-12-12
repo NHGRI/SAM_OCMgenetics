@@ -1,7 +1,7 @@
 # visualizing_GEMMA_script_plots_try2
 # R on computer 
 
-setwd("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/trying_GEMMA_attempt2/")
+setwd("path/to/the/file/trying_GEMMA_attempt2/")
 
 
 files <- c("gemma_try1_lmm_covC1_Jun04_2019",

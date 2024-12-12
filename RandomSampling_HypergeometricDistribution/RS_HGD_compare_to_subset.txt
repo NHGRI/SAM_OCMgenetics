@@ -1,7 +1,7 @@
 # squash_assoc_logistic_RS_HGD_ketone50Kflank_ocm_script_v1 
 ## BCsquash_assoc_logistic_RS_HGD_ketone50Kflank_ocm_script_v1 M server 
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \
@@ -12,7 +12,7 @@
 --logistic \
 --out squash_geno_altSNPsKetone_50Kflank_allsamps_C1covar_log
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \
@@ -23,7 +23,7 @@
 --logistic sex \
 --out squash_geno_altSNPsKetone_50Kflank_allsamps_sexC1covar_log
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \
@@ -33,7 +33,7 @@
 --logistic \
 --out squash_geno_altSNPsKetone_50Kflank_jam_nocovar_log
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \
@@ -43,7 +43,7 @@
 --logistic sex \
 --out squash_geno_altSNPsKetone_50Kflank_jam_sexcovar_log
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \
@@ -53,7 +53,7 @@
 --logistic \
 --out squash_geno_altSNPsKetone_50Kflank_mal_nocovar_log
 
-/mnt/hanchardlab/bin/plink_beta/plink \
+plink \
 --bfile HGTJAM_GSproject2_v3_auto_genoQC005hwe1e-18_diffmissQC_mindQC01_ibdQC \
 --pheno HGTJAM_pheno_EvN_inclU_v3.txt \
 --maf 0.01 \

@@ -4,7 +4,7 @@ module load Eagle
 module load selscan
 
 mkdir -p /lscratch/$SLURM_JOBID/tmp; \
-cp /data/Hanserv/liq4/y2023/gatkOct23/plink_QC/malawiAll_SNP.pkQC.HWE-6.Oct2023.g1k_v37_decoy.chrXXXIIXXX.{map,ped} /lscratch/$SLURM_JOBID/tmp/
+cp /path/to/the/file/plink_QC/malawiAll_SNP.pkQC.HWE-6.Oct2023.g1k_v37_decoy.chrXXXIIXXX.{map,ped} /lscratch/$SLURM_JOBID/tmp/
 
 module load plink/2.0
 # ped map to vcf 
