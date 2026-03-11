@@ -1,29 +1,40 @@
-# squash_RS_HGD_script_v1_fixingnames.docx
 
-allnameA <- c("geno_allSNPs_allsamps_C1covar",
-"geno_allSNPs_allsamps_sexC1covar",
-"geno_allSNPs_jam_nocovar",
-"geno_allSNPs_jam_sexcovar",
-"geno_allSNPs_mal_nocovar",
-"geno_allSNPs_mal_sexcovar")
-
-# also did 'altSNPsKetone', 'altSNPsNucleotide'
-allnameB <- c("geno_alternateSNPs_allsamps_C1covar",
-"geno_alternateSNPs_allsamps_sexC1covar",
-"geno_alternateSNPs_jam_nocovar",
-"geno_alternateSNPs_jam_sexcovar",
-"geno_alternateSNPs_mal_nocovar",
-"geno_alternateSNPs_mal_sexcovar")
-
+# ============================================================
+# RS + Hypergeometric Enrichment Analysis
+# ============================================================
+# Description:
+#   Compares alternate SNP sets against background SNP sets
+#   using:
+#     1) Random sampling (RS)
+#     2) Hypergeometric distribution (HGD)
+#
+# Requirements:
+#   - PLINK logistic output files
+#   - R packages: data.table, ggplot2
+# ============================================================
 
 # graphs 
 library(data.table) 
-setwd("Z:/nclie/HGTJAM_GSproject/HGTJAM_GSproject2/squash/")
 library(ggplot2)
 
-# every time I changed the number inside the brackets, I also changed the names that are highlighted in blue (below) 
-nameA <- allnameA[6]
-nameB <- allnameB[6]
+allnameA <- c("geno_allSNPs_allsamps_C1covar",
+              "geno_allSNPs_allsamps_sexC1covar",
+              "geno_allSNPs_jam_nocovar",
+              "geno_allSNPs_jam_sexcovar",
+              "geno_allSNPs_mal_nocovar",
+              "geno_allSNPs_mal_sexcovar")
+
+# also did 'altSNPsKetone', 'altSNPsNucleotide'
+allnameB <- c("geno_alternateSNPs_allsamps_C1covar",
+              "geno_alternateSNPs_allsamps_sexC1covar",
+              "geno_alternateSNPs_jam_nocovar",
+              "geno_alternateSNPs_jam_sexcovar",
+              "geno_alternateSNPs_mal_nocovar",
+              "geno_alternateSNPs_mal_sexcovar")
+
+## by varying the index, we can apply this to different sets of data
+nameA <- allnameA[1]
+nameB <- allnameB[1]
 fread(paste("squash_", nameA, "_log.assoc.logistic", sep=""), header=TRUE) -> assocArows
 fread(paste("squash_", nameB, "_log.assoc.logistic", sep=""), header=TRUE) -> assocBrows
 assocArows[assocArows$TEST == "ADD", ] -> assocA 
@@ -32,7 +43,7 @@ assocBrows[assocBrows$TEST == "ADD", ] -> assocB
 nrow(assocA) -> aa
 # how many SNPs in assocB? 
 nrow(assocB) -> bb 
-# decide on a threshold that is "significant" - I'm using P < or = 0.01 again 
+# decide on a threshold that is "significant"  
 PP <- 0.001
 # what is the proportion of P <= PP in 'assocB'? 
 ocmpropsig <- nrow(assocB[assocB$P <= PP,])/nrow(assocB)
@@ -68,5 +79,3 @@ ggplot(datfram, aes(viralSNPsnum, hyperviralSNPsnum)) +
        title = "Hypergeometric distribution of SNPs", subtitle = "geno_altSNPsSphingolipid_mal_sexcovar") +
   theme_bw()
 dev.off()
-
-
